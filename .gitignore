@@ -1,0 +1,10 @@
+# Ignorar arquivos de backup e temporários
+*.bkp
+*.asv
+
+# Ignorar arquivos do MATLAB
+*.mat
+
+# Ignorar arquivos do drawio
+*.drawio.bkp
+

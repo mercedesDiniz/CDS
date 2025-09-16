@@ -1,0 +1,28 @@
+---------------------------------------------------------------------------------------
+Sistemas dinâmicos: controle clássico e preditivo discreto
+Autores: Antonio Augusto Rodrigues Coelho (UFSC), Daniel Cavalcanti Jeronymo (UTFPR), Rejane de Barros Araújo (IFPA)
+Comprar:
+https://livraria.ufsc.br/produto/1220/sistemas-dinamicos--controle-classico-e-preditivo-discreto
+
+Sinopse: "Sistemas dinâmicos: controle clássico e preditivo discreto" fornece os conceitos, as características e os projetos de controladores clássicos e avançados digitais para processos dinâmicos. O livro destina-se a alunos de graduação e pós-graduação, a professores de universidades e de institutos federais e a profissionais de controle de processos e automação industrial.
+---------------------------------------------------------------------------------------
+
+
+---------------------------------------------------------------------------------------
+Ogata, K. Discrete-Time Control Systems. 2nd Ed. Prentice Hall, 1995.
+Comprar:
+https://www.amazon.com.br/Discrete-Time-Control-Systems-Katsuhiko-Ogata/dp/0130342815
+
+Dar uma conferida:
+http://gen.lib.rus.ec/book/index.php?md5=18291B9E47990BD700872FE29FB417B9
+---------------------------------------------------------------------------------------
+
+
+---------------------------------------------------------------------------------------
+Astrom, K. and Wittenmark, B. Computer-controlled systems: theory and design. 3rd Ed. Prentice Hall, 1996.
+Comprar:
+https://www.amazon.com/Computer-Controlled-Systems-Theory-Electrical-Engineering/dp/0486486133
+
+Dar uma conferida:
+http://library.lol/main/40AE085618049546B325E542D9A0119E
+---------------------------------------------------------------------------------------
