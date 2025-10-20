@@ -1,9 +1,12 @@
 # Ignorar arquivos de backup e temporários
 *.bkp
 *.asv
+*.bak
 
 # Ignorar arquivos do MATLAB
 *.mat
+*slprj/
+*.slxc
 
 # Ignorar arquivos do drawio
 *.drawio.bkp
