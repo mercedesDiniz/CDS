@@ -13,15 +13,28 @@ r = 0.4;  % [m]
 
 Ts = 0.001; % em s
 
-% Modelo contínuo linearizado
-Gs = tf(r, [J  c  m*g*d]);  % (sin(θ)≈θ)
+% Modelo contínuo linearizado (sin(θ)≈θ)
+    %                           r
+    %  theta(s)/F(s) = -------------------
+    %                   J*s^2 +c*s +m*g*d
+
+Gs_l = tf(r, [J  c  m*g*d])
 
 % Modelo discreto linearizado (discretizado por ZOH)
-Gz = c2d(Gs,Ts,'zoh');
-   Bz = Gz.num{1};
-        b0 = Bz(2); b1 = Bz(3);
-   Az = Gz.den{1};
-        a1 = Az(2); a2 = Az(3);
+Gz_l = c2d(Gs_l,Ts,'zoh');
+   Bz = Gz_l.num{1};
+        b0_l = Bz(2); b1_l = Bz(3);
+   Az = Gz_l.den{1};
+        a1_l = Az(2); a2_L = Az(3);
+
+% Modelo contínuo não-linear
+    %                               r
+    %  theta(s)/F(s) = ------------------------------
+    %                   J*s^2 +c*s +m*g*d*sin(theta)
+
+
+% Modelo discreto não-linear (discretizado por ZOH)
+
 
 %% Simulação da modelagem da planta
     % y_l x1_f(k) - posição do angulo (rad)
@@ -38,7 +51,7 @@ N = round( tfinal/Ts );     % numero total de amostras
 
     for k = 3:N
         % Modelo linear (sin(θ)≈θ) discretizado por ZOH
-        y_l(k) = -a1*y_l(k-1)-a2*y_l(k-2)+b0*u(k-1)+b1*u(k-2);
+        y_l(k) = -a1_l*y_l(k-1)-a2_L*y_l(k-2)+b0_l*u(k-1)+b1_l*u(k-2);
 
         % Modelo não linear discretizado de Forward
         x1_f(k) = x1_f(k-1) +Ts*x2_f(k-1);
@@ -59,11 +72,35 @@ subplot(212)
     legend('Não linear','Linear');
 
 %% Controlador PID
+% Projeto baseado no modelo linear
 kp = 1;  ki = 0.4; kd = 0.6; % ganhos
    
     % PID digital baseado na aproximação de Backward diff
     s0 = kp +ki*Ts +kd/Ts;
     s1 = -kp -2*kd/Ts;
     s2 = kd/Ts;
-    
+
+    % Condições iniciais
+    x1_f(1:2)=0; x2_f(1:2)=0;
+    u_f(1:2)=0; e_f(1:2)=0;
+
+    y_l(1:2)=0;
+    u_l(1:2)=0; e_l(1:2)=0;
+
+    % Sinal de referencia
+    ref(1:10) = 0; ref(11:N) = 5*(pi/180); % rad
+
+    for k = 3:N
+
+        % Modelo linear de tempo continuo (ZOH)
+        y_l(k) = -a1_l*y_l(k-1)-a2_L*y_l(k-2)+b0_l*u(k-1)+b1_l*u(k-2);
+
+        % Modelo não linear de tempo continuo (ZOH)
+
+        % Modelo não linear de tempo discreto (Forward)
+        x1_f(k) = x1_f(k-1) +Ts*x2_f(k-1);
+        x2_f(k) = (1- c*Ts/J)*x2_f(k-1) -(m*g*d*Ts/J)*sin(x1_f(k-1)) +(r*Ts/J)*u(k-1);
+        
+    end
+        
 %% Analise de margens de ganho e de fase
