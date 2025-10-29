@@ -25,7 +25,7 @@ Este repositório documenta as atividades, materiais de apoio e anotações refe
 ## 🎥 Aulas e Materiais de Apoio
 
 - **Playlist oficial das aulas**:  
-  [TSL by Antonio Silveira (YouTube)]()
+  [CDS by Antonio Silveira (YouTube)](https://www.youtube.com/playlist?list=PL6f7H4c5Rq5jQM0kWGimOfEo7WjsN6thQ)
 
 - **Repositório Compartilhado de Materiais**:  
   [Dropbox TSL by Antonio Silveira](https://www.dropbox.com/scl/fo/7iwni25y9rfyef36xc313/ANjCCKyAa_SMPcG_hxH-9Ls?rlkey=jjnkuudfr48za0ytwfcjmhuh9&dl=0 )
