@@ -18,7 +18,7 @@ Ts = 0.001; % em s
     %  theta(s)/F(s) = -------------------
     %                   J*s^2 +c*s +m*g*d
 
-Gs_l = tf(r, [J  c  m*g*d])
+Gs_l = tf(r, [J  c  m*g*d]);
 
 % Modelo discreto linearizado (discretizado por ZOH)
 Gz_l = c2d(Gs_l,Ts,'zoh');
@@ -27,13 +27,11 @@ Gz_l = c2d(Gs_l,Ts,'zoh');
    Az = Gz_l.den{1};
         a1_l = Az(2); a2_L = Az(3);
 
-% Modelo contínuo não-linear
-    %                               r
-    %  theta(s)/F(s) = ------------------------------
-    %                   J*s^2 +c*s +m*g*d*sin(theta)
+    % y_l(k) = -a1_l*y_l(k-1)-a2_L*y_l(k-2)+b0_l*u(k-1)+b1_l*u(k-2);
 
-
-% Modelo discreto não-linear (discretizado por ZOH)
+% Modelo discreto não-linear (discretizado por Forward)
+    % x1_nl(k) = x1_nl(k-1) +Ts*x2_nl(k-1);
+    % x2_nl(k) = (1- c*Ts/J)*x2_nl(k-1) -(m*g*d*Ts/J)*sin(x1_nl(k-1)) +(r*Ts/J)*u_nl(k-1);
 
 
 %% Simulação da modelagem da planta
@@ -41,11 +39,11 @@ Gz_l = c2d(Gs_l,Ts,'zoh');
     % x2_f(k) - velocidade angular (rad/s)
     % u - força do sistema de propulsão (N)
 
-tfinal = 20;                % tempo total da simulação (s)
+tfinal = 25;                % tempo total da simulação (s)
 N = round( tfinal/Ts );     % numero total de amostras
 
     % Condições iniciais
-    x1_f(1:2)=0; x2_f(1:2)=0;
+    x1_nl(1:2)=0; x2_nl(1:2)=0;
     y_l(1:2)=0;
     u(1:2)=0;
 
@@ -54,26 +52,27 @@ N = round( tfinal/Ts );     % numero total de amostras
         y_l(k) = -a1_l*y_l(k-1)-a2_L*y_l(k-2)+b0_l*u(k-1)+b1_l*u(k-2);
 
         % Modelo não linear discretizado de Forward
-        x1_f(k) = x1_f(k-1) +Ts*x2_f(k-1);
-        x2_f(k) = (1- c*Ts/J)*x2_f(k-1) -(m*g*d*Ts/J)*sin(x1_f(k-1)) +(r*Ts/J)*u(k-1);
+        x1_nl(k) = x1_nl(k-1) +Ts*x2_nl(k-1);
+        x2_nl(k) = (1- c*Ts/J)*x2_nl(k-1) -(m*g*d*Ts/J)*sin(x1_nl(k-1)) +(r*Ts/J)*u(k-1);
 
         u(k) = 0.25; % controle em malha aberta
     end
 
 % Plot
 t = 0:Ts:N*Ts-Ts;
+figure;
 subplot(211)
-    plot(t,x1_f,'b',t,y_l,'r');
+    plot(t,x1_nl,'b',t,y_l,'r');
     ylabel('Posição angular (rad)');
     legend('Não linear','Linear');
 subplot(212)
-    plot(t,(180/pi)*x1_f,'b',t,(180/pi)*y_l,'r');
+    plot(t,(180/pi)*x1_nl,'b',t,(180/pi)*y_l,'r');
     ylabel('Posição angular (deg)');
     legend('Não linear','Linear');
 
 %% Controlador PID
 % Projeto baseado no modelo linear
-kp = 1;  ki = 0.4; kd = 0.6; % ganhos
+kp = 2;  ki = 0.5; kd = 0.01; % ganhos
    
     % PID digital baseado na aproximação de Backward diff
     s0 = kp +ki*Ts +kd/Ts;
@@ -81,8 +80,8 @@ kp = 1;  ki = 0.4; kd = 0.6; % ganhos
     s2 = kd/Ts;
 
     % Condições iniciais
-    x1_f(1:2)=0; x2_f(1:2)=0;
-    u_f(1:2)=0; e_f(1:2)=0;
+    x1_nl(1:2)=0; x2_nl(1:2)=0;
+    u_nl(1:2)=0; e_nl(1:2)=0;
 
     y_l(1:2)=0;
     u_l(1:2)=0; e_l(1:2)=0;
@@ -92,15 +91,34 @@ kp = 1;  ki = 0.4; kd = 0.6; % ganhos
 
     for k = 3:N
 
-        % Modelo linear de tempo continuo (ZOH)
-        y_l(k) = -a1_l*y_l(k-1)-a2_L*y_l(k-2)+b0_l*u(k-1)+b1_l*u(k-2);
+        % Modelo linear
+        y_l(k) = -a1_l*y_l(k-1)-a2_L*y_l(k-2)+b0_l*u(k-1)+b1_l*u_l(k-2);
+            % Controle
+            e_l(k) = ref(k) - y_l(k);
+            u_l(k) = u_l(k-1) + s0*e_l(k) +s1*e_l(k-1) + s2*e_l(k-2);
 
-        % Modelo não linear de tempo continuo (ZOH)
-
-        % Modelo não linear de tempo discreto (Forward)
-        x1_f(k) = x1_f(k-1) +Ts*x2_f(k-1);
-        x2_f(k) = (1- c*Ts/J)*x2_f(k-1) -(m*g*d*Ts/J)*sin(x1_f(k-1)) +(r*Ts/J)*u(k-1);
-        
+        % Modelo não linear (Forward)
+        x1_nl(k) = x1_nl(k-1) +Ts*x2_nl(k-1);
+        x2_nl(k) = (1- c*Ts/J)*x2_nl(k-1) -(m*g*d*Ts/J)*sin(x1_nl(k-1)) +(r*Ts/J)*u_nl(k-1);
+            % Controle
+            e_nl = ref(k) - x1_nl;
+            u_nl(k) = u_nl(k-1) + s0*e_nl(k) + s1*e_nl(k-1) + s2*e_nl(k-2);
     end
-        
+
+% Plots
+t = 0:Ts:N*Ts-Ts;
+figure;
+subplot(311)
+    plot(t,ref,'k',t,x1_nl,'b',t,y_l,'r');
+    ylabel('Posição angular (rad)');
+    legend('Ref.','Non linear','Linear');
+subplot(312)
+    plot(t,(180/pi)*ref,'k',t,(180/pi)*x1_nl,'b',t,(180/pi)*y_l,'r');
+    ylabel('Posição angular (deg)');
+    legend('Ref.','Non linear','Linear');
+subplot(313)
+    plot(t,u_nl,'b', t,u_l,'--r');
+    ylabel('F(t) (N)');
+    legend('Non linear','Linear');
+
 %% Analise de margens de ganho e de fase
