@@ -11,7 +11,7 @@ g = 9.8;  % [m/s^2]
 d = 0.05; % [m]
 r = 0.4;  % [m]
 
-Ts = 0.001; % em s
+Ts = 0.001; % periodo de amostragem (s)
 
 % Modelo contínuo linearizado (sin(θ)≈θ)
     %                           r
@@ -35,8 +35,8 @@ Gz_l = c2d(Gs_l,Ts,'zoh');
 
 
 %% Simulação da modelagem da planta
-    % y_l x1_f(k) - posição do angulo (rad)
-    % x2_f(k) - velocidade angular (rad/s)
+    % y_l x1_nl(k) - posição do angulo (rad)
+    % x2_nl(k) - velocidade angular (rad/s)
     % u - força do sistema de propulsão (N)
 
 tfinal = 25;                % tempo total da simulação (s)
@@ -81,7 +81,7 @@ kp = 1;  ki = 0.4; kd = 0.6; % ganhos
     s2 = kd/Ts;
 
     % Perturbação de carga
-    v1(1:N/2) = 0; v1(1+(N/2):N) = 0.5*(pi/180); % rad
+    v1(1:N/2) = 0; v1(1+(N/2):N) = 0; %0.5*(pi/180); % rad
 
     % Ruido gaussiano
     v2 = 0*wgn(1,N,1e-4,'linear'); % W
@@ -107,6 +107,7 @@ kp = 1;  ki = 0.4; kd = 0.6; % ganhos
             e_l(k) = ref(k) - y_l(k);
             u_l(k) = u_l(k-1) + s0*e_l(k) +s1*e_l(k-1) + s2*e_l(k-2);
 
+          
         % Modelo não linear (Forward)
         x1_nl(k) = x1_nl(k-1) +Ts*x2_nl(k-1);
         x2_nl(k) = (1- c*Ts/J)*x2_nl(k-1) -(m*g*d*Ts/J)*sin(x1_nl(k-1)) +(r*Ts/J)*u_nl(k-1);
@@ -115,6 +116,13 @@ kp = 1;  ki = 0.4; kd = 0.6; % ganhos
             % Controle
             e_nl = ref(k) - x1_nl;
             u_nl(k) = u_nl(k-1) + s0*e_nl(k) + s1*e_nl(k-1) + s2*e_nl(k-2);
+
+            % Saturação no atuador
+            if u_nl(k) >= 0.25
+              u_nl(k) = 0.25;
+            elseif u_nl(k) <= 0
+              u_nl(k) = 0;
+            end
     end
 
 % Plots
