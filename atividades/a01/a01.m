@@ -39,7 +39,7 @@ Gz_l = c2d(Gs_l,Ts,'zoh');
     % x2_nl(k) - velocidade angular (rad/s)
     % u - força do sistema de propulsão (N)
 
-tfinal = 25;                % tempo total da simulação (s)
+tfinal = 20;                % tempo total da simulação (s)
 N = round( tfinal/Ts );     % numero total de amostras
 
     % Condições iniciais
@@ -81,7 +81,7 @@ kp = 1;  ki = 0.4; kd = 0.6; % ganhos
     s2 = kd/Ts;
 
     % Perturbação de carga
-    v1(1:N/2) = 0; v1(1+(N/2):N) = 0; %0.5*(pi/180); % rad
+    v1(1:N/2) = 0; v1(1+(N/2):N) = -0.5*(pi/180); % rad
 
     % Ruido gaussiano
     v2 = 0*wgn(1,N,1e-4,'linear'); % W
@@ -99,7 +99,7 @@ kp = 1;  ki = 0.4; kd = 0.6; % ganhos
     for k = 3:N
 
         % Modelo linear
-        y_l(k) = -a1*y_l(k-1)-a2*y_l(k-2)+b0*u(k-1)+b1*u_l(k-2) ...
+        y_l(k) = -a1*y_l(k-1)-a2*y_l(k-2)+b0*u_l(k-1)+b1*u_l(k-2) ...
                     + v1(k) +a1*v1(k-1) +a2*v1(k-2) ...    
                     + v2(k) +a1*v2(k-1) +a2*v2(k-2);
 
@@ -111,10 +111,10 @@ kp = 1;  ki = 0.4; kd = 0.6; % ganhos
         % Modelo não linear (Forward)
         x1_nl(k) = x1_nl(k-1) +Ts*x2_nl(k-1);
         x2_nl(k) = (1- c*Ts/J)*x2_nl(k-1) -(m*g*d*Ts/J)*sin(x1_nl(k-1)) +(r*Ts/J)*u_nl(k-1);
-        y_nl(k) = x1_nl(k) + v1(k) + v1(k);
+        y_nl(k) = x1_nl(k) + v1(k) + v2(k);
 
             % Controle
-            e_nl = ref(k) - x1_nl;
+            e_nl(k) = ref(k) - y_nl(k);
             u_nl(k) = u_nl(k-1) + s0*e_nl(k) + s1*e_nl(k-1) + s2*e_nl(k-2);
 
             % Saturação no atuador
@@ -143,10 +143,15 @@ subplot(313)
 
 %% Analise de margens de ganho e de fase
 
-% Control system relative stability analysis
+% Análise de estabilidade relativa do sistema de controle
 Cz = tf([s0 s1 s2],[1 -1 0],Ts);
 
 Gdlz = Cz*Gz_l; % Direct loop system
+
+%fs = 1/Ts; ws = 2*pi*fs; w_nyquist = ws/2;
+
 w = logspace(-2,5,100);
-figure; margin(Gdlz,w); % Gain and Phase Margins
+figure; 
+margin(Gdlz,w); % margens de ganho e fase
+grid on;
 
