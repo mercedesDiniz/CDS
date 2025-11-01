@@ -73,7 +73,8 @@ subplot(212)
 
 %% Controlador PID
 % Projeto baseado no modelo linear
-kp = 1;  ki = 0.4; kd = 0.6; % ganhos
+% kp = 1;  ki = 0.4; kd = 0.6; % ganhos
+kp = 1;  ki = 0.4; kd = 0; 
    
     % PID digital baseado na aproximação de Backward diff
     s0 = kp +ki*Ts +kd/Ts;
@@ -81,10 +82,10 @@ kp = 1;  ki = 0.4; kd = 0.6; % ganhos
     s2 = kd/Ts;
 
     % Perturbação de carga
-    v1(1:N/2) = 0; v1(1+(N/2):N) = -0.5*(pi/180); % rad
+    v1(1:N/2) = 0; v1(1+(N/2):N) = 0.5*(pi/180); % rad
 
     % Ruido gaussiano
-    v2 = 0*wgn(1,N,1e-4,'linear'); % W
+    v2 = 1*wgn(1,N,1e-4,'linear'); % W
 
     % Condições iniciais
     x1_nl(1:2)=0; x2_nl(1:2)=0;
