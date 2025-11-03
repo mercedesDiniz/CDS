@@ -73,14 +73,14 @@ subplot(212)
 
 %% Controlador PID
 % Projeto baseado no modelo linear
-kp = 1;  ki = 0.4; kd = 0.6; % ganhos
+% kp = 1;  ki = 0.4; kd = 0.6; % ganhos
 % kp = 1;  ki = 0.4; kd = 0; 
 
 % IMC de Marari e Zafiriou (1989, pag.69)
-% tau_cl = 10;
-% kp = 2*zeta/(ks*wn*(0+tau_cl));
-% ki = kp*wn/2*zeta;
-% kd = kp/2*zeta*wn;
+tau_cl = 10; ks = 2.0408; zeta = 0.3571; wn = 0.7;
+kp = 2*zeta/(ks*wn*(0+tau_cl));
+ki = kp*wn/2*zeta;
+kd = kp/2*zeta*wn;
    
     % PID digital baseado na aproximação de Backward diff
     s0 = kp +ki*Ts +kd/Ts;
