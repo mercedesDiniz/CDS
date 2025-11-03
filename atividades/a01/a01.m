@@ -73,8 +73,8 @@ subplot(212)
 
 %% Controlador PID
 % Projeto baseado no modelo linear
-% kp = 1;  ki = 0.4; kd = 0.6; % ganhos
-kp = 1;  ki = 0.4; kd = 0; 
+kp = 1;  ki = 0.4; kd = 0.6; % ganhos
+% kp = 1;  ki = 0.4; kd = 0; 
    
     % PID digital baseado na aproximação de Backward diff
     s0 = kp +ki*Ts +kd/Ts;
@@ -142,17 +142,31 @@ subplot(313)
     ylabel('F(t) (N)');
     legend('Non linear','Linear');
 
-%% Analise de margens de ganho e de fase
-
-% Análise de estabilidade relativa do sistema de controle
-Cz = tf([s0 s1 s2],[1 -1 0],Ts);
-
+%% Análise de margens de ganho e de fase
+Cz = tf([s0 s1 s2],[1 -1 0],Ts); % controlador
 Gdlz = Cz*Gz_l; % Direct loop system
 
-%fs = 1/Ts; ws = 2*pi*fs; w_nyquist = ws/2;
+    % Análise de estabilidade relativa pelo metodo de Bode    
+    w = logspace(-2,5,100); %fs = 1/Ts; ws = 2*pi*fs; w_nyquist = ws/2;
+    figure; margin(Gdlz,w); grid;
 
-w = logspace(-2,5,100);
-figure; 
-margin(Gdlz,w); % margens de ganho e fase
-grid on;
+    % Análise de estabilidade relativa pelas curvas de sensibilidade
+    Gclz = feedback(Gdlz, 1, -1);
+    Tsen = Gclz;
+    Ssen = 1 - Tsen;
 
+    figure; sigma(Tsen); hold; sigma(Ssen); grid;
+    title('Funções de sensibilidade');
+    legend('|T(e^{j\omegaT_s})|','|S(e^{j\omegaT_s})|');
+    
+    % Picos de sensibilidade
+    mt = max( max( sigma(Tsen) ) );
+    ms = max( max( sigma(Tsen) ) );
+    
+    % Margens de ganho e fase
+    GmdB = min( 20*log10(ms/(ms-1)), 20*log10(1+(1/mt)) );
+    Pmdeg = (180/pi)*min( (2*asin(1/(2*ms)) ), (2*asin(1/(2*mt)) ) );
+
+    disp('Margens de ganho e fase:');
+    disp('GmdB = '); disp(GmdB);
+    disp('Pmdeg = '); disp(Pmdeg);
