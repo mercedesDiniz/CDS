@@ -1,5 +1,6 @@
 %% Damped Pendulum Control
-clear all; close all; clc;
+%clear all; close all; clc;
+
 
 %% Parameter for the model based on the paper of Lemes et al. (2010)
 J = 0.4; % [kg*m^2]
@@ -9,36 +10,74 @@ g = 9.8; % [m/s^2]
 d = 0.05; % [m]
 r = 0.4; % [m]
 
+
     % Linear Transfer Function approximation
     %                           r
     %  theta(s)/F(s) = -------------------
     %                   J*s^2 +c*s +m*g*d
 
+
     % F(s) is the propulsion system force [N]
     % theta(s) is the pendulum angular position [rad]
     Gs = tf(r, [J  c  m*g*d]);
+
+
+        % Common 2nd-order system parameters:
+        ks = 2.0408; % static gain in rad/N
+        zeta = 0.3571; % Damping factor
+        wn = 0.7; % natural freq. in rad/s
     
-    Ts = 0.1; % Sampling time (seconds)
+    Ts = 0.001; % Sampling time (seconds)
     Gz = c2d(Gs,Ts,'zoh');
        Bz = Gz.num{1};
             b0 = Bz(2); b1 = Bz(3);
        Az = Gz.den{1};
             a1 = Az(2); a2 = Az(3);
 
+
 %% Digital PID Control
-   kp = 1;  ki = .4; kd = 0.6; % PID gains
+   %kp = 1;  ki = .4; kd = 0.6; % PID gains by Trial & Error
    
+   % IMC by Morari and Zafiriou (1989, pág. 69 PDF)
+   tau_cl = 4; 
+   kp = 2*zeta/(ks*wn*(0+tau_cl));
+   ki = kp*wn/(2*zeta);
+   kd = kp/(2*zeta*wn);
+
+
     % Digital PID based on the Backward diff. synthesis
     s0 = kp +ki*Ts +kd/Ts
     s1 = -kp -2*kd/Ts
     s2 = kd/Ts
 
-    % Control system relative stability analysis
-    Cz = tf([s0 s1 s2],[1 -1 0],Ts);
 
+    Cz = tf([s0 s1 s2],[1 -1 0],Ts); % Control Sys. TF
+
+
+%% Control system relative stability analysis
+    % Bode's stability criterion
     Gdlz = Cz*Gz; % Direct loop system
     w = logspace(-2,5,100);
     figure; margin(Gdlz,w); % Gain and Phase Margins
+
+
+    % Senitivity and Complementary Sensitivity analysis
+    % T(z) = Gcl(z)  % co-sensitivity = closed-loop sys
+    Gclz = feedback(Cz*Gz,1,-1);
+    Tz = Gclz; % Co-sensitivity system
+        mt = max(sigma(Tz)); % Max Peak of |T(e^jwTs)|
+    Sz = 1-Tz; % Sensitivity system
+        ms = max(sigma(Sz)); % Max Peak of |S(e^jwTs)|
+    figure;
+    sigma(Tz); hold; sigma(Sz);
+    legend('|T(e^{j\omega T_s})|','|S(e^{j\omega T_s})|');
+
+
+    % Gain and Phase margins
+    GMdB = min(  20*log10(ms/(ms-1)) ,  20*log10(1+(1/mt))  )
+    PMdeg = (180/pi)*min(  2*asin(1/(2*ms)), 2*asin(1/(2*mt)) )
+
+
 
 
 % Non linear pendulum model
@@ -48,23 +87,30 @@ r = 0.4; % [m]
   % x2(k) = (1- c*Ts/J)*x2(k-1) -(m*g*d*Ts/J)*sin(x1(k-1)) +(r*Ts/J)*u(k-1);
 
 
+
+
 % System non linear simulation
 tfinal = 20; % total simulation time (seconds)
 N = round( tfinal/Ts ); % total number of samples
 
+
 % Reference sequence
-  yr(1:10) = 0; yr(11:N) = 5*(pi/180); % rad
+  yr(1:10) = 0; yr(11:N) = 1*(pi/180); % rad
+
 
 % Load disturbance sequence
-  v(1:N/2) = 0; v(1+(N/2):N) = 0.5*(pi/180); % rad
+  v(1:N/2) = 0; v(1+(N/2):N) = 0*0.5*(pi/180); % rad
+
 
 % Gaussian Noise disturbance sequence
   v2 = 1*wgn(1,N,1e-4,'linear'); % Power in Watts
+
 
 % Initial conditions
     x1(1:2)=0;
     x2(1:2)=0;
     u(1:2)=0; e(1:2)=0;
+
 
 for k = 3:N
 % Non linear pendulum model
@@ -72,9 +118,11 @@ for k = 3:N
   x2(k) = (1- c*Ts/J)*x2(k-1) -(m*g*d*Ts/J)*sin(x1(k-1)) +(r*Ts/J)*u(k-1);
   y(k) = x1(k) +v(k) +v2(k);
 
+
   % Controller
   e(k) = yr(k) -y(k);
   u(k) = u(k-1) +s0*e(k) +s1*e(k-1) +s2*e(k-2);
+
 
   if u(k) >= 0.25
       u(k) = 0.25;
@@ -84,11 +132,14 @@ for k = 3:N
 end
 
 
+
+
 % System linear simulation
 % Initial conditions
     yL(1)=0; yL(2)=0;
     uL(1:2)=0; % Remark: uL refers to the linear control signal
     eL(1:2)=0;
+
 
 for k = 3:N
 % Linear pendulum model
@@ -96,10 +147,14 @@ for k = 3:N
          +v(k) +a1*v(k-1) +a2*v(k-2) ...
          +v2(k) +a1*v2(k-1) +a2*v2(k-2);
 
+
   % Controller
   eL(k) = yr(k) -yL(k);
   uL(k) = uL(k-1) +s0*eL(k) +s1*eL(k-1) +s2*eL(k-2);
 end
+
+
+
 
 
 
@@ -118,8 +173,3 @@ subplot(313)
     plot(t,u,'b', t,uL,'--r');
     ylabel('u(t) (N)');
     legend('Non linear','Linear');
-
-
-
-
-
