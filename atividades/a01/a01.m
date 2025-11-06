@@ -42,45 +42,50 @@ Gz_l = c2d(Gs_l,Ts,'zoh');
 tfinal = 20;                % tempo total da simulação (s)
 N = round( tfinal/Ts );     % numero total de amostras
 
-    % Condições iniciais
-    x1_nl(1:2)=0; x2_nl(1:2)=0;
-    y_l(1:2)=0;
-    u(1:2)=0;
-
-    for k = 3:N
-        % Modelo linear (sin(θ)≈θ) discretizado por ZOH
-        y_l(k) = -a1*y_l(k-1)-a2*y_l(k-2)+b0*u(k-1)+b1*u(k-2);
-                  
-
-        % Modelo não linear discretizado de Forward
-        x1_nl(k) = x1_nl(k-1) +Ts*x2_nl(k-1);
-        x2_nl(k) = (1- c*Ts/J)*x2_nl(k-1) -(m*g*d*Ts/J)*sin(x1_nl(k-1)) +(r*Ts/J)*u(k-1);
-
-        u(k) = 0.25; % controle em malha aberta
-    end
-
-% Plot
-t = 0:Ts:N*Ts-Ts;
-figure;
-subplot(211)
-    plot(t,x1_nl,'b',t,y_l,'r');
-    ylabel('Posição angular (rad)');
-    legend('Não linear','Linear');
-subplot(212)
-    plot(t,(180/pi)*x1_nl,'b',t,(180/pi)*y_l,'r');
-    ylabel('Posição angular (deg)');
-    legend('Não linear','Linear');
+%     % Condições iniciais
+%     x1_nl(1:2)=0; x2_nl(1:2)=0;
+%     y_l(1:2)=0;
+%     u(1:2)=0;
+% 
+%     for k = 3:N
+%         % Modelo linear (sin(θ)≈θ) discretizado por ZOH
+%         y_l(k) = -a1*y_l(k-1)-a2*y_l(k-2)+b0*u(k-1)+b1*u(k-2);
+%                   
+% 
+%         % Modelo não linear discretizado de Forward
+%         x1_nl(k) = x1_nl(k-1) +Ts*x2_nl(k-1);
+%         x2_nl(k) = (1- c*Ts/J)*x2_nl(k-1) -(m*g*d*Ts/J)*sin(x1_nl(k-1)) +(r*Ts/J)*u(k-1);
+% 
+%         u(k) = 0.25; % controle em malha aberta
+%     end
+% 
+% % Plot
+% t = 0:Ts:N*Ts-Ts;
+% figure;
+% subplot(211)
+%     plot(t,x1_nl,'b',t,y_l,'r');
+%     ylabel('Posição angular (rad)');
+%     legend('Não linear','Linear');
+% subplot(212)
+%     plot(t,(180/pi)*x1_nl,'b',t,(180/pi)*y_l,'r');
+%     ylabel('Posição angular (deg)');
+%     legend('Não linear','Linear');
 
 %% Controlador PID
 % Projeto baseado no modelo linear
-% kp = 1;  ki = 0.4; kd = 0.6; % ganhos
-% kp = 1;  ki = 0.4; kd = 0; 
+    % kp = 1;  ki = 0.4; kd = 0.6; % ganhos
+    % kp = 1;  ki = 0.4; kd = 0; 
 
-% IMC de Marari e Zafiriou (1989, pag.69)
-tau_cl = 10; ks = 2.0408; zeta = 0.3571; wn = 0.7;
-kp = 2*zeta/(ks*wn*(0+tau_cl));
-ki = kp*wn/2*zeta;
-kd = kp/2*zeta*wn;
+%Sintonia por IMC de Marari e Zafiriou (1989)
+    % G(s) = ks*( wn^2 / (s^2 + 2*zeta*wn*s + wn^2) )
+    wn = sqrt(Gs_l.den{1}(3)/J);    % frequencia natural (rad/s)    
+    zeta = 0.5/(2*wn);              % fator de amortecimento
+    ks = 1 / (wn^2);                % galho estatico (rad/N)
+    tau_cl = 4;                    % tempo de convergencia desejado (s)
+
+    kp = 2*zeta/(ks*wn*(0+tau_cl));
+    ki = kp*wn/(2*zeta);
+    kd = kp/(2*zeta*wn);
    
     % PID digital baseado na aproximação de Backward diff
     s0 = kp +ki*Ts +kd/Ts;
@@ -88,10 +93,10 @@ kd = kp/2*zeta*wn;
     s2 = kd/Ts;
 
     % Perturbação de carga
-    v1(1:N/2) = 0; v1(1+(N/2):N) = 0.5*(pi/180); % rad
+    v1(1:N/2) = 0; v1(1+(N/2):N) = 0*0.5*(pi/180); % rad
 
     % Ruido gaussiano
-    v2 = 1*wgn(1,N,1e-4,'linear'); % W
+    v2 = 0*wgn(1,N,1e-4,'linear'); % W
 
     % Condições iniciais
     x1_nl(1:2)=0; x2_nl(1:2)=0;
@@ -101,7 +106,7 @@ kd = kp/2*zeta*wn;
     u_l(1:2)=0; e_l(1:2)=0;
 
     % Sinal de referencia
-    ref(1:10) = 0; ref(11:N) = 5*(pi/180); % rad
+    ref(1:10) = 0; ref(11:N) = 1*(pi/180); % rad
 
     for k = 3:N
 
@@ -150,16 +155,16 @@ subplot(313)
 
 %% Análise de margens de ganho e de fase
 Cz = tf([s0 s1 s2],[1 -1 0],Ts); % controlador
-Gdlz = Cz*Gz_l; % Direct loop system
+Gdlz = Cz*Gz_l; % sistema na malha direta
 
     % Análise de estabilidade relativa pelo metodo de Bode    
     w = logspace(-2,5,100); %fs = 1/Ts; ws = 2*pi*fs; w_nyquist = ws/2;
     figure; margin(Gdlz,w); grid;
 
     % Análise de estabilidade relativa pelas curvas de sensibilidade
-    Gclz = feedback(Gdlz, 1, -1);
-    Tsen = Gclz;
-    Ssen = 1 - Tsen;
+    Gclz = feedback(Gdlz, 1, -1); % Cz*Gz_l/(1+Cz*Gz_l) = Gdlz/(1+Gdlz)
+    Tsen = Gclz;        % Func. de sensibilidade complmentar = sistema em malha fechada
+    Ssen = 1 - Tsen;    % Func. de sensibilidade
 
     figure; sigma(Tsen); hold; sigma(Ssen); grid;
     title('Funções de sensibilidade');
@@ -167,12 +172,8 @@ Gdlz = Cz*Gz_l; % Direct loop system
     
     % Picos de sensibilidade
     mt = max( max( sigma(Tsen) ) );
-    ms = max( max( sigma(Tsen) ) );
+    ms = max( max( sigma(Ssen) ) );
     
     % Margens de ganho e fase
-    GmdB = min( 20*log10(ms/(ms-1)), 20*log10(1+(1/mt)) );
-    Pmdeg = (180/pi)*min( (2*asin(1/(2*ms)) ), (2*asin(1/(2*mt)) ) );
-
-    disp('Margens de ganho e fase:');
-    disp('GmdB = '); disp(GmdB);
-    disp('Pmdeg = '); disp(Pmdeg);
+    GmdB = min( 20*log10(ms/(ms-1)), 20*log10(1+(1/mt)) )
+    Pmdeg = (180/pi)*min( (2*asin(1/(2*ms)) ), (2*asin(1/(2*mt)) ) )
