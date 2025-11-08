@@ -72,6 +72,7 @@ N = round( tfinal/Ts );     % numero total de amostras
 %     legend('Não linear','Linear');
 
 %% Controlador PID
+
 % Projeto baseado no modelo linear
     % kp = 1;  ki = 0.4; kd = 0.6; % ganhos
     % kp = 1;  ki = 0.4; kd = 0; 
@@ -81,7 +82,7 @@ N = round( tfinal/Ts );     % numero total de amostras
     wn = sqrt(Gs_l.den{1}(3)/J);    % frequencia natural (rad/s)    
     zeta = 0.5/(2*wn);              % fator de amortecimento
     ks = 1 / (wn^2);                % galho estatico (rad/N)
-    tau_cl = 4;                    % tempo de convergencia desejado (s)
+    tau_cl = 1;                     % tempo de convergencia desejado (s)
 
     kp = 2*zeta/(ks*wn*(0+tau_cl));
     ki = kp*wn/(2*zeta);
@@ -96,7 +97,7 @@ N = round( tfinal/Ts );     % numero total de amostras
     v1(1:N/2) = 0; v1(1+(N/2):N) = 0*0.5*(pi/180); % rad
 
     % Ruido gaussiano
-    v2 = 0*wgn(1,N,1e-4,'linear'); % W
+    v2 = 0*1*wgn(1,N,1e-4,'linear'); % W
 
     % Condições iniciais
     x1_nl(1:2)=0; x2_nl(1:2)=0;
@@ -106,7 +107,7 @@ N = round( tfinal/Ts );     % numero total de amostras
     u_l(1:2)=0; e_l(1:2)=0;
 
     % Sinal de referencia
-    ref(1:10) = 0; ref(11:N) = 1*(pi/180); % rad
+    ref(1:10) = 0; ref(11:N) = 5*(pi/180); % rad
 
     for k = 3:N
 
@@ -167,7 +168,7 @@ Gdlz = Cz*Gz_l; % sistema na malha direta
     Ssen = 1 - Tsen;    % Func. de sensibilidade
 
     figure; sigma(Tsen); hold; sigma(Ssen); grid;
-    title('Funções de sensibilidade');
+    %title('Funções de sensibilidade');
     legend('|T(e^{j\omegaT_s})|','|S(e^{j\omegaT_s})|');
     
     % Picos de sensibilidade
