@@ -11,3 +11,5 @@
 # Ignorar arquivos do drawio
 *.drawio.bkp
 
+*.png
+
