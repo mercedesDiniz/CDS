@@ -40,7 +40,7 @@ Gz = c2d(Gs, Ts) % G(z) = ( B(z)z{-1} )/A(z) = b0/( 1+a1*z{-1} )
 
 % Polinômio T(z)
     % T(z) = t_off*Ho(z)
-    % t_off = Hc(z->1)/B(z->1) = A(1)/B(1)
+    % t_off = Hc(z->1)/B(z->1)
     t_off = sum(Hc)/sum(Bz); % pré-compensador DC
     Tz = t_off*Ho; 
         t0 = Tz(1); t1 = Tz(2);
