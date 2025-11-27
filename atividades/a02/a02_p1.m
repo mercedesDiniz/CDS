@@ -2,6 +2,7 @@
 % Resolvar o problema de alocação e teste sobre a plata G(s), mostrando que uma escolha de tau_mf de projeto (diferente de 10)
 % funciona com seu controle RST sintetizado;
 clear all; close all; clc;
+
 %% Planta
 tau = 10;
 Gs = tf(1, [ tau 1]) 
