@@ -11,7 +11,7 @@ tau = 10;
     % Modelo discreto da planta
     Ts = 1; % periodo de amostragem (s)
     Gz = c2d(Gs, Ts)                   
-        Az = Gz.den{1}; % [1  -a1]
+        Az = Gz.den{1}; a1 = Az(2);
         Bz = Gz.num{1}; b0 = Bz(2);
     
     % Modelo aumentado da planta
@@ -31,9 +31,9 @@ tau = 10;
 
     % Polinomio desejado em M.F: Hc(z)
         % Gs_des = ( g*ωn^{2} ) / ( s^{2}+2ζωns+ ωn^{2} )
-        g = 1;          % ganho do sistema
-        wn = 1;        % frequencia natural
-        zeta = 0.5;     % fator de amortecimento (subamortecido: 0<ζ<1)
+        g = 1;         % ganho do sistema
+        wn = 0.5;        % frequencia natural
+        zeta = 0.5;    % fator de amortecimento (subamortecido: 0<ζ<1)
 
     Gs_des = tf(g*wn^2, [1  2*zeta*wn   wn^2])
     Gz_des = c2d(Gs_des,Ts)
@@ -71,11 +71,10 @@ tau = 10;
     y(1:N) = 0; u(1:N) = 0;
 
 for k = 3:N
-    % Modelo aumentado
-    y(k) = b0*u(k)-b0*u(k-1)-a1_aum*y(k-1)-a2_aum*y(k-2);
+    % Modelo da planta
+    y(k) = -a1*y(k-1) +b0*u(k-1);
 
     % Controlador RST
-    % u(k) = 2*u(k-1)-u(k-2)+t0*ref(k)+t1*ref(k-1)-s0*y(k)-s1*y(k-1)-s2*y(k-2);
     u(k) = u(k-1)+t0*ref(k)+t1*ref(k-1)-s0*y(k)-s1*y(k-1)-s2*y(k-2);
 end
 
