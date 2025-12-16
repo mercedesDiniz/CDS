@@ -30,6 +30,7 @@ Hcz = Gzcl.den{1}; % Polinomio desejado em M.F: Hc(z)
 
 Hz = conv(Hcz,Hoz);
     h1 = Hz(2); h2 = Hz(3); h3 = Hz(4); h4 = Hz(5);
+    % Hz = [1 h1 h2 h3 h4];
 
     % Polinomio R(z) e S(z)
     r0 = 1;
@@ -45,26 +46,31 @@ Hz = conv(Hcz,Hoz);
     toff = sum(Hcz)/sum(Bz); % pré-compensador DC
     Tz = toff*Hoz;
         t0 = Tz(1); t1 = Tz(2); t2 = Tz(3);  
+    % Tz = [t0 t1 t2];
 
-%% Resposta em frequência
-% C = tf(Sz, Rz);     % controlador
-% C = tf(Rz, Sz); 
-% C = tf(Bz.*Tz, (Rz.*Az + Bz.*Sz) );
-% Gdl = C*Gcl;      % sistema na malha direta
-% 
-%     % Análise de estabilidade relativa pelas curvas de sensibilidade
-%     Gclz = feedback(Gdl, 1, -1);
-%     Tsen = Gclz;        % Func. de sensibilidade complmentar
-%     Ssen = 1 - Tsen;    % Func. de sensibilidade
-% 
-%     figure; sigma(Tsen); hold; sigma(Ssen); grid;
-%     % title('Funções de sensibilidade');
-%     legend('|T(e^{j\omegaT_s})|','|S(e^{j\omegaT_s})|');
-% 
-%     % Picos de sensibilidade
-%     mt = max( max( sigma(Tsen) ) );
-%     ms = max( max( sigma(Ssen) ) );
-% 
-%     % Margens de ganho e fase
-%     GmdB = min( 20*log10(ms/(ms-1)), 20*log10(1+(1/mt)) )
-%     Pmdeg = (180/pi)*min( (2*asin(1/(2*ms)) ), (2*asin(1/(2*mt)) ) )
+%% Resposta em frequência  
+Cz = tf(Sz, Rz, Ts); % controlador
+Gdlz = Cz*tf(b0b, DAz, Ts);       % sistema na malha direta
+
+    % Análise de estabilidade relativa pelas curvas de sensibilidade
+    Gclz = feedback(Gdlz, 1, -1);
+    Tsen = Gclz;        % Func. de sensibilidade complmentar
+    Ssen = 1 - Tsen;    % Func. de sensibilidade
+
+    figure; sigma(Tsen); hold; sigma(Ssen); grid;
+    % title('Funções de sensibilidade');
+    legend('|T(e^{j\omegaT_s})|','|S(e^{j\omegaT_s})|');
+
+    % Picos de sensibilidade
+    mt = max( max( sigma(Tsen) ) );
+    ms = max( max( sigma(Ssen) ) );
+
+    % Margens de ganho e fase
+    GmdB = min( 20*log10(ms/(ms-1)), 20*log10(1+(1/mt)) )
+    Pmdeg = (180/pi)*min( (2*asin(1/(2*ms)) ), (2*asin(1/(2*mt)) ) )
+
+%% 
+
+
+
+
