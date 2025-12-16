@@ -69,8 +69,36 @@ Gdlz = Cz*tf(b0b, DAz, Ts);       % sistema na malha direta
     GmdB = min( 20*log10(ms/(ms-1)), 20*log10(1+(1/mt)) )
     Pmdeg = (180/pi)*min( (2*asin(1/(2*ms)) ), (2*asin(1/(2*mt)) ) )
 
-%% 
+%% Simulação no dominio do tempo
+tfinal = 20;
+N = round( tfinal/Ts );
+t = 0:Ts:N*Ts-Ts;
 
+    % Sinal de referencia
+    % ref(1:N) = 0; ref(3:N) = 1; 
+    ref(1:5)=0;
+    ref(6: round( N/3 ))=1;
+    ref(1+round( N/3 ): round(2*N/3) )=2.5;
+    ref(1+round( 2*N/3 ): N )= 4;
 
+    % Condições iniciais
+    y(1:4) = 0; u(1:4) = 0; du(1:4) = 0;
 
+for k = 5:N
+    % Modelo da planta
+    y(k) = -a1*y(k-1) -a2*y(k-2) +b0*u(k-1) +b1*u(k-2);
 
+    % Controlador RST
+    du(k) = -r1*du(k-1) +t0*ref(k) +t1*ref(k-1) +t2*ref(k-2) ...
+        -s0*y(k) -s1*y(k-1) -s2*y(k-2);
+    u(k) = u(k-1) +du(k);
+end
+
+% Plot
+subplot(211)
+    plot(t,ref,':k',t,y,'b');
+    ylabel('Sinal de saída');
+    legend('Ref.','y');
+subplot(212)
+    plot(t,u,'b');
+    ylabel('Sinal de controle');
