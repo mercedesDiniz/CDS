@@ -84,9 +84,13 @@ t = 0:Ts:N*Ts-Ts;
     % Condições iniciais
     y(1:4) = 0; u(1:4) = 0; du(1:4) = 0;
 
+    % Ruído Gaussiano nos sensores
+    v = 10*wgn(1,N,1e-4,'linear');
+
 for k = 5:N
     % Modelo da planta
-    y(k) = -a1*y(k-1) -a2*y(k-2) +b0*u(k-1) +b1*u(k-2);
+    y(k) = -a1*y(k-1) -a2*y(k-2) +b0*u(k-1) +b1*u(k-2) ...
+            + v(k) +a1*v(k-1) +a2*v(k-2);
 
     % Controlador RST
     du(k) = -r1*du(k-1) +t0*ref(k) +t1*ref(k-1) +t2*ref(k-2) ...
@@ -94,7 +98,7 @@ for k = 5:N
     u(k) = u(k-1) +du(k);
 end
 
-% Plot
+%% Plot
 subplot(211)
     plot(t,ref,':k',t,y,'b');
     ylabel('Sinal de saída');
