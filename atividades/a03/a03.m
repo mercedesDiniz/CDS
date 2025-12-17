@@ -99,6 +99,7 @@ for k = 5:N
 end
 
 %% Plot
+figure;
 subplot(211)
     plot(t,ref,':k',t,y,'b');
     ylabel('Sinal de saída');
