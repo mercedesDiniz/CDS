@@ -58,12 +58,16 @@ t = 0:Ts:N*Ts-Ts;
     % Ruído de processo
     w = 0*wgn(1,N,1e-4,'linear');
 
+    % Perturbação de carga
+    v1 = zeros(1,N); v1(round(N/3):round(2*N/3)) = 0*0.5;
+
     % Condições iniciais
     y(1:5) = 0; u(1:5) = 0; du(1:5) = 0;
 
 for k = 6:N
     % Modelo da planta
-    y(k) = (1/da0)*( -da1*y(k-1)-da2*y(k-2)-da3*y(k-3)+b0*du(k-4)+b1*du(k-5)+w(k) );
+    y(k) = (1/da0)*( -da1*y(k-1)-da2*y(k-2)-da3*y(k-3)+b0*du(k-4)+b1*du(k-5)+w(k) ...
+                     +v1(k)+da1*v1(k-1)+da2*v1(k-2)+da3*v1(k-3));
 
     % Controlador
     du(k) = (1/r0)*( -r1*du(k-1)-r2*du(k-2)-r3*du(k-3)-r4*du(k-4)+ref(k-4)-f0*y(k)-f1*y(k-1)-f2*y(k-2) ); 
