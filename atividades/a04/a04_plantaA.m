@@ -43,11 +43,11 @@ N = round( tfinal/Ts );
 t = 0:Ts:N*Ts-Ts;
 
     % Sinal de referencia
-    % ref(1:N) = 0; ref(3:N) = 1;
-    ref(1:5)=0;
-    ref(6: round( N/3 ))=1;
-    ref(1+round( N/3 ): round(2*N/3) )=2.5;
-    ref(1+round( 2*N/3 ): N )= 4;
+    ref(1:N) = 0; ref(3:N) = 1;
+    % ref(1:5)=0;
+    % ref(6: round( N/3 ))=1;
+    % ref(1+round( N/3 ): round(2*N/3) )=2.5;
+    % ref(1+round( 2*N/3 ): N )= 4;
 
     % Ruído de processo
     w = 0*wgn(1,N,1e-4,'linear');
@@ -64,7 +64,7 @@ for k = 5:N
     u(k) = u(k-1) +du(k);
 end
 
-%% Plot
+% Plot
 figure;
 subplot(211)
     plot(t,ref,':k',t,y,'b');
@@ -73,3 +73,13 @@ subplot(211)
 subplot(212)
     plot(t,u,'b');
     ylabel('Sinal de controle');
+
+%% Análise de seguimento de referência do tipo degrau com base nos índices ISE+ISU
+
+    % Integral of Squared Error (ISE)
+        % ISE pequeno = controle agressivo
+    ISE = sum((ref - y).^2)
+    
+    % Integral of Squared Control Increment (ISU)
+        % ISU pequeno = controle conservador
+    ISU = sum(du.^2)
