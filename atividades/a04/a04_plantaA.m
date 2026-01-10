@@ -12,7 +12,7 @@ Gs = tf(1, [1 1])
 Gz = c2d(Gs,Ts, 'zoh')
 
 Az = Gz.den{1};
-    a1 = Az(1); a2 = Az(2);
+    a0 = Az(1); a1 = Az(2);
 Bz = Gz.num{1};
     b0 = Bz(2);
 
@@ -22,6 +22,8 @@ Bz = Gz.num{1};
         da0 = DAz(1); da1 = DAz(2); da2 = DAz(3);
 
     % Equação Diofantina
+        % E(z)= e0 + e1*z^{-1} + e2*z^{-2}
+        % F(z)= f0 + f1*z^{-1}
     e0 = 1;
     e1 = -da1;
     e2 = -da1*e1-da2;
@@ -36,7 +38,7 @@ Bz = Gz.num{1};
     r3 = b0*e3;
 
 %% Simulação no dominio do tempo
-tfinal = 100;
+tfinal = 100; % tempo de simulação (em segundos)
 N = round( tfinal/Ts );
 t = 0:Ts:N*Ts-Ts;
 
@@ -47,15 +49,15 @@ t = 0:Ts:N*Ts-Ts;
     ref(1+round( N/3 ): round(2*N/3) )=2.5;
     ref(1+round( 2*N/3 ): N )= 4;
 
-    % Ruído Gaussiano
+    % Ruído de processo
     w = 0*wgn(1,N,1e-4,'linear');
 
     % Condições iniciais
-    y(1:d) = 0; u(1:d) = 0; du(1:d) = 0;
+    y(1:4) = 0; u(1:4) = 0; du(1:4) = 0;
 
-for k = d+1:N
+for k = 5:N
     % Modelo da planta
-    y(k) = (1/da0)*( -da1*y(k-1)-da2*y(k-2)+b0*du(k-d)+w(k) );
+    y(k) = (1/da0)*( -da1*y(k-1)-da2*y(k-2)+b0*du(k-4)+w(k) );
 
     % Controlador
     du(k) = (1/r0)*( -r1*du(k-1)-r2*du(k-2)-r3*du(k-3)+ref(k-4)-f0*y(k)-f1*y(k-1) ); 
