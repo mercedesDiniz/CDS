@@ -94,3 +94,13 @@ subplot(212)
     % Integral of Squared Control Increment (ISU)
         % ISU pequeno = controle conservador
     ISU = sum(du.^2)
+ 
+%% Análise das variâncias
+    
+    % Variância da saida
+    var_y = var(y)
+    % Variância do sinal de controle
+    var_u = var(u)
+    % Variância do erro
+    var_e = var((ref - y))
+    

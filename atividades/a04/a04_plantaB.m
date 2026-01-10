@@ -91,7 +91,7 @@ subplot(212)
     plot(t,u,'b');
     ylabel('Sinal de controle');
 
-%% Análise de seguimento de referência do tipo degrau com base nos índices ISE+ISU
+%% Análise dos índices ISE e ISU
 
     % Integral of Squared Error (ISE)
         % ISE pequeno = controle agressivo
@@ -100,3 +100,12 @@ subplot(212)
     % Integral of Squared Control Increment (ISU)
         % ISU pequeno = controle conservador
     ISU = sum(du.^2)
+
+%% Análise das variâncias
+    
+    % Variância da saida
+    var_y = var(y)
+    % Variância do sinal de controle
+    var_u = var(u)
+    % Variância do erro
+    var_e = var((ref - y))
