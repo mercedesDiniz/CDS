@@ -1,6 +1,5 @@
 %% Atividade 04: 
-% Para as classes de plantas mostradas a seguir, projetar o sistemas GMVC incrementais de ordem mínima,
-% realizando os seguintes testes e comparando-os com uma solução baseada em PID: 
+% Projetar o sistemas GMVC incrementais de ordem mínima
 clear all; close all; clc;
 
 %% Planta a) G(s) = ( 1/(s+1) )*e^{-3s}
@@ -49,19 +48,27 @@ t = 0:Ts:N*Ts-Ts;
     % ref(1+round( N/3 ): round(2*N/3) )=2.5;
     % ref(1+round( 2*N/3 ): N )= 4;
 
-    % Ruído de processo
-    w = 0*wgn(1,N,1e-4,'linear');
-
     % Perturbação de carga
     v1 = zeros(1,N); v1(round(N/3):round(2*N/3)) = 0*0.5;
 
+    % Ruído sensor
+    v2 = 0*wgn(1,N,1e-4,'linear');
+
+    % Ruído de processo
+    w = 0*wgn(1,N,1e-4,'linear');
+    
     % Condições iniciais
-    y(1:4) = 0; u(1:4) = 0; du(1:4) = 0;
+    y(1:4) = 0; u(1:4) = 0; du(1:4) = 0; dw(1:5) = 0;
 
 for k = 5:N
+
+    % Variação do ruído de processo
+    dw(k) = w(k) - w(k-1);
+
     % Modelo da planta
-    y(k) = (1/da0)*( -da1*y(k-1)-da2*y(k-2)+b0*du(k-4)+w(k) ...
-                     +v1(k)+da1*v1(k-1)+da2*v1(k-2) );
+    y(k) = (1/da0)*( -da1*y(k-1)-da2*y(k-2)+b0*du(k-4)+dw(k) ...
+                     +v1(k)+da1*v1(k-1)+da2*v1(k-2) ...
+                     +v2(k)+da1*v2(k-1)+da2*v2(k-2) );
 
     % Controlador
     du(k) = (1/r0)*( -r1*du(k-1)-r2*du(k-2)-r3*du(k-3)+ref(k-4)-f0*y(k)-f1*y(k-1) ); 
