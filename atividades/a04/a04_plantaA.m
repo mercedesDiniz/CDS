@@ -36,6 +36,13 @@ Bz = Gz.num{1};
     r2 = b0*e2;
     r3 = b0*e3;
 
+    % Controlador PID
+    kp = 0.1;  ki = 0; kd = 0.01;
+    s0 = kp +ki*Ts +kd/Ts;
+    s1 = -kp -2*kd/Ts;
+    s2 = kd/Ts;
+    
+
 %% Simulação no dominio do tempo
 tfinal = 100; % tempo de simulação (em segundos)
 N = round( tfinal/Ts );
@@ -58,8 +65,9 @@ t = 0:Ts:N*Ts-Ts;
     w = 0*wgn(1,N,1e-4,'linear');
     
     % Condições iniciais
-    y(1:4) = 0; u(1:4) = 0; du(1:4) = 0; dw(1:5) = 0;
-
+    y(1:4) = 0; dw(1:5) = 0; u(1:4) = 0; du(1:4) = 0;
+    y_pid(1:4) = 0; u_pid(1:4) = 0; e(1:4) = 0;
+     
 for k = 5:N
 
     % Variação do ruído de processo
@@ -70,19 +78,29 @@ for k = 5:N
                      +v1(k)+da1*v1(k-1)+da2*v1(k-2) ...
                      +v2(k)+da1*v2(k-1)+da2*v2(k-2) );
 
-    % Controlador
+    y_pid(k) = (1/da0)*( -da1*y_pid(k-1)-da2*y_pid(k-2)+b0*u_pid(k-4)+dw(k) ...
+                     +v1(k)+da1*v1(k-1)+da2*v1(k-2) ...
+                     +v2(k)+da1*v2(k-1)+da2*v2(k-2) );
+
+    % Controlador GMVC incremental de ordem mínima
     du(k) = (1/r0)*( -r1*du(k-1)-r2*du(k-2)-r3*du(k-3)+ref(k-4)-f0*y(k)-f1*y(k-1) ); 
     u(k) = u(k-1) +du(k);
+
+    % Cotrolador PID
+    e(k) = ref(k) - y_pid(k);
+    u_pid(k) = u_pid(k-1) + s0*e(k) +s1*e(k-1) + s2*e(k-2);
+
 end
 
 % Plot
 figure;
 subplot(211)
-    plot(t,ref,':k',t,y,'b');
+    plot(t,ref,':k',t,y,'b',t,y_pid,'r');
     ylabel('Sinal de saída');
-    legend('Ref.','y');
+    legend('Ref.','y_{GMVC}', 'y_{PID}');
 subplot(212)
-    plot(t,u,'b');
+    plot(t,u,'b',t,u_pid,'r');
+    legend('u_{GMVC}', 'u_{PID}');
     ylabel('Sinal de controle');
 
 %% Análise dos índices ISE e ISU
