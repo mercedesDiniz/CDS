@@ -95,13 +95,22 @@ end
 % Plot
 figure;
 subplot(211)
-    plot(t,ref,':k',t,y,'b',t,y_pid,'r');
-    ylabel('Sinal de saída');
-    legend('Ref.','y_{GMVC}', 'y_{PID}');
+plot(t,ref,':k','LineWidth',1.5); hold on
+plot(t,y,'b','LineWidth',1.5);
+plot(t,y_pid,'r','LineWidth',1.5);
+ylabel('Sinal de saída','FontSize',14);
+legend('Ref.','y_{GMVC}', 'y_{PID}','FontSize',12);
+set(gca,'FontSize',12);
+grid on
+
 subplot(212)
-    plot(t,u,'b',t,u_pid,'r');
-    legend('u_{GMVC}', 'u_{PID}');
-    ylabel('Sinal de controle');
+plot(t,u,'b','LineWidth',1.5); hold on
+plot(t,u_pid,'r','LineWidth',1.5);
+ylabel('Sinal de controle','FontSize',14);
+legend('u_{GMVC}', 'u_{PID}','FontSize',12);
+set(gca,'FontSize',12);
+grid on
+
 
 %% Análise dos índices ISE e ISU
 
