@@ -2,13 +2,12 @@
 clear all; close all; clc;
 
 %% Parametros
-Ts = 0.1;             % periodo de amostragem (s)
-td = 0;                  % atraso continuo (s)
-d = round((td/Ts) + 1)   % atraso discreto (em amostras)
+Ts = 1;                 % periodo de amostragem (s)
+td = 0;                 % atraso continuo (s)
+d = round((td/Ts) + 1)  % atraso discreto (em amostras)
 
-% Nx = d+1;                % horizonte de previsão de estado (atraso virtual)
-
-%lambida = 1;
+Ny = 3; Nu = 1;         % horizonte de predição
+lam = 1e10;             % fator de ponderação de controle
 
 %% Planta a) Dinâmica do ângulo de roll do VLS-1 em Max Q
 
@@ -28,47 +27,36 @@ d = round((td/Ts) + 1)   % atraso discreto (em amostras)
 
 %% DMC
 
-%% Step-response data to build the DMC database
-tfinal = 100; % total sim. time in seconds
-Ntest = round(tfinal/Ts); % total number of samples to simulate
+% Resposta ao degral para criar o database
+tfinal = 10; 
+Ntest = round(tfinal/Ts); 
 y = step(Gz,Ntest);
  %plot(y)
 
-g = y(1:81); % Selected by visual inspection of the plot
-g = g(2:81); % Remark: getting rid of the null initial value!
-N = length(g); % total number of regressors for the free response model
+g = y(1:81); 
+g = g(2:81);    % Remark: getting rid of the null initial value!
+N = length(g); 
 clear y;
 
-%% Creating a database matrix Goriginal from where we can
-%% generate the G matrix.
+% Matriz G
 Gorig = toeplitz(g); % Toeplitz Matrix based on g
 Gorig = tril(Gorig); % Lower Trianglar matrix based on Gorig
-  % Gorig(1:5,1:5)
 
-  % Prediction Horinzons and control weighting factor
-  Ny = 3; Nu = 1; lam = 1e10;
   G = Gorig(1:Ny,1:Nu)
 
-  % DMC gain based on G and lam
-  disp('Complet gain K = ');
+% Ganho baseado em G e lam
   K = inv( G'*G +lam*eye(Nu,Nu) )*G'
 
-  disp('Just the 1st line of K:');
   K1 = K(1,:)
 
-  %% Generating the matrix F for the free response model
-  Fi = []; % internal part of the F matrix
-
-  %N = 5+Ny+d; % Remark: forcing a smaller N by pure testing
-
+% Matriz F
+Fi = []; 
   for i = 1:N-Ny % REMARK!!!
       Fi = [Fi g(i+1:Ny+i,1)-g(i,1)];
   end
     F = [ones(Ny,1) Fi];
     
-
-
-%% Discrete-time simulation
+%% Simulação
 tfinal = 1400; 
 Nsim = round(tfinal/Ts); % total number of iterations for the sim.
 
@@ -97,7 +85,7 @@ for k = N+1:Nsim
       u(k) = u(k-1) +du(k);
 end
 
-% Plots
+%% Plots
 t=0:Ts:Nsim*Ts-Ts;
 figure;
 subplot(211)
@@ -106,5 +94,3 @@ subplot(211)
 
 subplot(212)
     plot(t,u,'b');
-
-

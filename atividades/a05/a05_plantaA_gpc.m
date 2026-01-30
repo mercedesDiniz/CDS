@@ -6,6 +6,9 @@ Ts = 0.1;                % periodo de amostragem (s)
 td = 0;                  % atraso continuo (s)
 d = round((td/Ts) + 1)   % atraso discreto (em amostras)
 
+Ny = 2; Nu = 1;          % horizonte de predição
+lam = .000001;           % fator de ponderação de controle
+
 %% Planta a) Dinâmica do ângulo de roll do VLS-1 em Max Q
 
 % Modelo contínuo
@@ -33,36 +36,34 @@ Gamma = [ -DAz(2:end)' ]
 
 %% GPC
 nb=1; na = 2;
-Ny = 2; Nu = 1; lam = .000001;
 
-    % Generating a general Gorig matrix to obtain G and Gbar
-    % Rmk: Gj(z) = B(z)Ej(z)
-    Eorig =[1]; % based on Ej(z)
+    Eorig =[1]; 
     E=1; F=[A^0*Gamma]'; Gmat=[];
     Gj=conv(E,Bz(2:end)); Gbar=[Gj(end-nb+1:end)];
-    % Construindo as matrizes Gbar e F:
+
     for j=2:Ny
-    E=[E C*A^(j-2)*Gamma]; F=[F;[A^(j-1)*Gamma]'];
-    Gj=conv(E,Bz(2:end)); Gbar=[Gbar; Gj(end-nb+1:end)];
+        E=[E C*A^(j-2)*Gamma]; F=[F;[A^(j-1)*Gamma]'];
+        Gj=conv(E,Bz(2:end)); Gbar=[Gbar; Gj(end-nb+1:end)];
     end
 
-    % G matrix obtained by the Toeplitz lower tringular matrix
+% Matriz G
     G = toeplitz( Gj(1:end-nb) ); G=tril(G);
-    G = G(1:Ny,1:Nu); % Based on the prediction horizons
+    G = G(1:Ny,1:Nu); 
 
-    % F_R matrix: Eq. (6.270)
+% Matriz F_R 
     F_R = [Gbar F];
 
-    % GPC Gain
+% Ganho
     K = inv(G'*G +lam*eye(Nu,Nu))*G';
     K1 = K(1,:);
 
-%% Discrete-time simulation
+%% Simulação
 tfinal = 10; 
-Nsim = round(tfinal/Ts); % total number of iterations for the sim.
+Nsim = round(tfinal/Ts);
 
+% Sinal de referencia
 r(1:na+d)=0; r(na+d+1:Nsim+Ny)=1;
-r = r'; % Making sure that this is a column vector!
+r = r'; 
 
 for k = 1:na+d % initial conditions (N is huge!)
     y(k)=0;
@@ -70,19 +71,25 @@ for k = 1:na+d % initial conditions (N is huge!)
     du(k)=0;
 end
 for k = na+d+1:Nsim
-    % Plant model
+    % Planta
     y(k) = -a1*y(k-1) -a2*y(k-2) +b0*u(k-d) +b1*u(k-d-1);
 
-    % GPC
-      x = [du(k-1) y(k) y(k-1) y(k-2)]';
+    % Controlador
+    x = [du(k-1) y(k) y(k-1) y(k-2)]';
 
-      % Control law
-      du(k) = K1*( r(k:k+Ny-1,1)-F_R*x );
+    du(k) = K1*( r(k:k+Ny-1,1)-F_R*x );
 
-      u(k) = u(k-1) +du(k);
+    u(k) = u(k-1) +du(k);
+
+    % Saturação
+    % if u(k) >= 0.06981
+    %   u(k) = 0.06981;
+    % elseif u(k) <= 0
+    %   u(k) = 0;
+    % end
 end
 
-% Plots
+%% Plots
 t=0:Ts:Nsim*Ts-Ts;
 figure;
 subplot(211)
