@@ -6,8 +6,8 @@ Ts = 0.1;                 % periodo de amostragem (s)
 td = 0;                 % atraso continuo (s)
 d = round((td/Ts) + 1)  % atraso discreto (em amostras)
 
-Ny = 2; Nu = 1;         % horizonte de predição
-lam = 1e5;             % fator de ponderação de controle
+Ny = 10; Nu = 1;         % horizonte de predição
+lam = 1;             % fator de ponderação de controle
 
 %% Planta a) Dinâmica do ângulo de roll do VLS-1 em Max Q
 
@@ -56,7 +56,7 @@ Fi = [];
     F = [ones(Ny,1) Fi];
     
 %% Simulação
-tfinal = tfinal*5; 
+tfinal = tfinal*7; 
 Nsim = round(tfinal/Ts); % total number of iterations for the sim.
 
 r(1:N)=0; r(N+1:Nsim+Ny)= 1*(pi/180);
