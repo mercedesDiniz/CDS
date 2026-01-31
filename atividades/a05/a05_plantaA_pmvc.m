@@ -7,7 +7,7 @@ td = 0;                  % atraso continuo (s)
 d = round((td/Ts) + 1)   % atraso discreto (em amostras)
 
 Nx = d+1;                % horizonte de previsão de estado (atraso virtual)
-LAM = diag([1e6]);       % fator de ponderação de controle
+LAM = diag([1e3]);       % fator de ponderação de controle
 
 %% Planta a) Dinâmica do ângulo de roll do VLS-1 em Max Q
 
@@ -161,11 +161,11 @@ for k = Nx+1:N
     u(k) = u(k-1) +du(k);
 
     % Saturação
-    if u(k) >= 0.06981
-      u(k) = 0.06981;
-    elseif u(k) <= 0
-      u(k) = 0;
-    end
+    % if u(k) >= 0.06981
+    %   u(k) = 0.06981;
+    % elseif u(k) <= 0
+    %   u(k) = 0;
+    % end
 
 end
 

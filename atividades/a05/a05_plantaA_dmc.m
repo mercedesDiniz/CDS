@@ -2,12 +2,12 @@
 clear all; close all; clc;
 
 %% Parametros
-Ts = 1;                 % periodo de amostragem (s)
+Ts = 0.1;                 % periodo de amostragem (s)
 td = 0;                 % atraso continuo (s)
 d = round((td/Ts) + 1)  % atraso discreto (em amostras)
 
-Ny = 3; Nu = 1;         % horizonte de predição
-lam = 1e10;             % fator de ponderação de controle
+Ny = 2; Nu = 1;         % horizonte de predição
+lam = 1e5;             % fator de ponderação de controle
 
 %% Planta a) Dinâmica do ângulo de roll do VLS-1 em Max Q
 
@@ -30,8 +30,7 @@ lam = 1e10;             % fator de ponderação de controle
 % Resposta ao degral para criar o database
 tfinal = 10; 
 Ntest = round(tfinal/Ts); 
-y = step(Gz,Ntest);
- %plot(y)
+y = step(Gz,Ntest); figure; plot(y); title('Resposta ao degral do Database');
 
 g = y(1:81); 
 g = g(2:81);    % Remark: getting rid of the null initial value!
@@ -57,10 +56,10 @@ Fi = [];
     F = [ones(Ny,1) Fi];
     
 %% Simulação
-tfinal = 1400; 
+tfinal = tfinal*5; 
 Nsim = round(tfinal/Ts); % total number of iterations for the sim.
 
-r(1:N)=0; r(N+1:Nsim+Ny)=1;
+r(1:N)=0; r(N+1:Nsim+Ny)= 1*(pi/180);
 r = r'; % Making sure that this is a column vector!
 
 for k = 1:N % initial conditions (N is huge!)
@@ -83,6 +82,13 @@ for k = N+1:Nsim
       du(k) = K1*( r(k:k+Ny-1,1)-F*x );
 
       u(k) = u(k-1) +du(k);
+
+      % Saturação
+        % if u(k) >= 0.06981
+        %   u(k) = 0.06981;
+        % elseif u(k) <= 0
+        %   u(k) = 0;
+        % end
 end
 
 %% Plots
