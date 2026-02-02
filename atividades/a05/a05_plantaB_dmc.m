@@ -56,7 +56,7 @@ Fi = [];
     F = [ones(Ny,1) Fi];
     
 %% Simulação
-tfinal = tfinal*7; 
+tfinal = tfinal*10; 
 Nsim = round(tfinal/Ts); % total number of iterations for the sim.
 
 r(1:N)=0; r(N+1:Nsim+Ny)= 1*(pi/180);
