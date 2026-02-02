@@ -30,7 +30,7 @@ lam = 1;             % fator de ponderação de controle
 % Resposta ao degral para criar o database
 tfinal = 2; 
 Ntest = round(tfinal/Ts); 
-y = step(Gz,Ntest); figure; plot(y); title('Resposta ao degral do Database');
+y = step(Gz,Ntest); figure; plot(y); %title('Resposta ao degrau');
 
 g = y(1:81); 
 g = g(2:81);    % Remark: getting rid of the null initial value!

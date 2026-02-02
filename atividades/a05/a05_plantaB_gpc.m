@@ -62,7 +62,7 @@ tfinal = 10;
 Nsim = round(tfinal/Ts);
 
 % Sinal de referencia
-r(1:na+d)=0; r(na+d+1:Nsim+Ny)=1;
+r(1:na+d)=0; r(na+d+1:Nsim+Ny)=1*(pi/180);
 r = r'; 
 
 for k = 1:na+d % initial conditions (N is huge!)
