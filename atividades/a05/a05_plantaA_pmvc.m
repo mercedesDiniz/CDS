@@ -1,13 +1,13 @@
 %% Atividade 05: Projetar e implementar, por simulação, o  PMVC, DMC e GPC.
 clear all; close all; clc;
-
+% clear all; clc;
 %% Parametros
 Ts = 0.1;                % periodo de amostragem (s)
 td = 0;                  % atraso continuo (s)
 d = round((td/Ts) + 1)   % atraso discreto (em amostras)
 
 Nx = d+1;                % horizonte de previsão de estado (atraso virtual)
-LAM = diag([1e3]);       % fator de ponderação de controle
+LAM = diag([1]);       % fator de ponderação de controle
 
 %% Planta a) Dinâmica do ângulo de roll do VLS-1 em Max Q
 
@@ -63,7 +63,7 @@ disp('Verificação da Observabilidade:');
 %% PMVC com realimentação total de estados
 
 % Estimador de estados baseado no filtro de Kalman
-    Qkf = diag([1  1 0]);   % covariancia do ruido do processo
+    Qkf = diag([0.1 0.1 0.1]);   % covariancia do ruido do processo
     Rkf = 1e10;             % covariancia do ruido de medição
     
     disp('Verificação da Detectabilidade (p/ o Filtro de Kalman):');
@@ -88,8 +88,8 @@ disp('Verificação da Observabilidade:');
     figure; step(syskf); title('Kalman-based estimator convergence analysis');
 
 % LQR
-    Qlqr = diag([1  1 0]);  % penalização dos estados
-    Rlqr = 1e5;             % penalização do esforço de controle
+    Qlqr = diag([0.1 0.1 0.1]);  % penalização dos estados
+    Rlqr = 1e4;             % penalização do esforço de controle
 
     disp('Verificação da Detectabilidade (p/ o LQR):');
     Ob_dec_lqr = obsv(Aa', sqrt(Qlqr)');
