@@ -175,7 +175,9 @@ figure;
     subplot(211)
     plot(t,r1,':k'); hold;
     plot(t,y,'b');
+    legend('Ref.','y');
     ylabel('y(t)'); xlabel('Time (s)');
+
     subplot(212)
     plot(t,du,'b');
     ylabel('du(t)'); xlabel('Time (s)');
